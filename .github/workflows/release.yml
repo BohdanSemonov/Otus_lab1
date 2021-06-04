@@ -37,5 +37,5 @@ jobs:
           asset_path: ./lab1-0.0.${{ github.run_number }}-Linux.deb
           asset_name: lab1-0.0.${{ github.run_number }}-Linux.deb
           asset_content_type: application/vnd.debian.binary-package
-      - run: helloworld_cli
+      - run: ./helloworld_cli
       - run: cat ip_filter.tsv | ./ip_filter | md5sum
