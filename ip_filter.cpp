@@ -57,7 +57,7 @@ auto filter(const std::vector<std::vector<std::string>> &ip_pool)
     // init ip bytes number
     constexpr int ipv4_bytes_num = 4;
     bool is_swap = false;
-    int i = 1;
+    size_t i = 1;
 
     do
     {
@@ -109,7 +109,7 @@ auto filter(const std::vector<std::vector<std::string>> &ip_pool, const std::str
     return filter(sorted_ip);
 }//filter
 
-int main(int argc, char const *argv[])
+int main()
 {
     try
     {
