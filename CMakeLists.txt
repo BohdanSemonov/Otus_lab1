@@ -51,7 +51,7 @@ else ()
         -Wall -Wextra -pedantic -Werror
     )
     target_compile_options(ip_filter PRIVATE
-        -Wall -Wextra -pedantic
+        -Wall -Wextra -pedantic -Werror
     )
     target_compile_options(lab1 PRIVATE
         -Wall -Wextra -pedantic -Werror
