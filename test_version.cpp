@@ -17,8 +17,13 @@ BOOST_AUTO_TEST_CASE(test_valid_version)
     if (f.is_open())
     {
         getline(f, ver_str);
-        BOOST_TEST(std::to_string(version()) == ver_str);    
+        BOOST_TEST(std::to_string(version()) == ver_str);
+        f.close();
     }
+    
+    std::ofstream fw("ver_tst");
+    fw << version() << "\n";
+    fw.close();
 }
 
 }
