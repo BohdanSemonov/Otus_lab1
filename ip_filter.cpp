@@ -3,8 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <map>
-#include <regex>
+#include <algorithm>
 
 // ("",  '.') -> [""]
 // ("11", '.') -> ["11"]
@@ -12,7 +11,7 @@
 // ("11.", '.') -> ["11", ""]
 // (".11", '.') -> ["", "11"]
 // ("11.22", '.') -> ["11", "22"]
-std::vector<std::string> split(const std::string &str, char d)
+auto split(const std::string &str, char d)
 {
     std::vector<std::string> r;
 
@@ -26,112 +25,95 @@ std::vector<std::string> split(const std::string &str, char d)
         stop = str.find_first_of(d, start);
     }
 
-    r.push_back(str.substr(start));
+    r.push_back(str.substr(start).c_str());
 
     return r;
 }//split
 
-auto ip_tostring(const std::vector<std::string> &ip)
+auto ip_tostring(const std::vector<int> &ip)
 {
    std::string ip_str;
    for (const auto &ip_part : ip)
-       ip_str += ip_part + ".";
+       ip_str += std::to_string(ip_part) + ".";
    ip_str.erase(ip_str.end() - 1);
 
    return ip_str;
 }
 
-void ip_print(const std::vector<std::vector<std::string>> &ip_pool)
+void ip_print(const std::vector<std::vector<int>> &ip_pool)
 {
     for (const auto &ip : ip_pool)
         std::cout << ip_tostring(ip) << std::endl;
 }
 
-auto filter(const std::vector<std::vector<std::string>> &ip_pool)
+auto filter(const std::vector<std::vector<int>> &ip_pool)
 {
     auto ip_pool_cp = ip_pool;
-
-    if (ip_pool_cp.size() < 2)
-        return ip_pool_cp;
-
-    // init ip bytes number
-    constexpr int ipv4_bytes_num = 4;
-    bool is_swap = false;
-    size_t i = 1;
-
-    do
-    {
-        is_swap = false;
-        i = 1;
-        do
-        {
-            int ip_bytes_prev[ipv4_bytes_num];
-            int ip_bytes_curr[ipv4_bytes_num];
-
-            for (int b = 0; b < ipv4_bytes_num; ++b)
-                ip_bytes_prev[b] = atoi(ip_pool_cp[i - 1][b].c_str());
-            for (int b = 0; b < ipv4_bytes_num; ++b)
-                ip_bytes_curr[b] = atoi(ip_pool_cp[i][b].c_str());
-
-            if (
-                (ip_bytes_prev[0] < ip_bytes_curr[0]) ||
-                (ip_bytes_prev[0] == ip_bytes_curr[0] && ip_bytes_prev[1] < ip_bytes_curr[1]) ||
-                (ip_bytes_prev[0] == ip_bytes_curr[0] && ip_bytes_prev[1] == ip_bytes_curr[1] && ip_bytes_prev[2] < ip_bytes_curr[2]) ||
-                (ip_bytes_prev[0] == ip_bytes_curr[0] && ip_bytes_prev[1] == ip_bytes_curr[1] && ip_bytes_prev[2] == ip_bytes_curr[2] && ip_bytes_prev[3] < ip_bytes_curr[3])
-               )
-            {
-                auto tmp = ip_pool_cp[i];
-                ip_pool_cp[i] = ip_pool_cp[i - 1];
-                ip_pool_cp[i - 1] = tmp;
-                is_swap = true;
-            }
-
-            ++i;
-        } while (i < ip_pool_cp.size());
-    } while (is_swap);
-
+    std::sort(ip_pool_cp.begin(), ip_pool_cp.end(), std::greater<std::vector<int>>());
     return ip_pool_cp;
 }//filter
 
-auto filter(const std::vector<std::vector<std::string>> &ip_pool, const std::string &mask)
+auto filter(const std::vector<std::vector<int>> &ip_pool, int first_byte, int second_byte = -1)
 {
-    std::vector<std::vector<std::string>> sorted_ip;
+    std::vector<std::vector<int>> ip_pool_cp;
 
-    for (const auto &ip : ip_pool)
+    for (const auto ip : ip_pool)
     {
-        auto cm = std::cmatch();
-        bool is_match = std::regex_match(ip_tostring(ip).c_str(), cm, std::regex(mask));
-
-        if (is_match)
-            sorted_ip.push_back(ip);
+        if (ip.at(0) == first_byte && (second_byte == -1 || ip.at(1) == second_byte))
+        ip_pool_cp.push_back(ip);
     }
 
-    return filter(sorted_ip);
+    return filter(ip_pool_cp);
 }//filter
 
-int main()
+auto filter_any(const std::vector<std::vector<int>> &ip_pool, int any_byte)
+{
+    std::vector<std::vector<int>> ip_pool_cp;
+
+    for (const auto ip : ip_pool)
+    {
+        if (
+            ip.at(0) == any_byte ||
+            ip.at(1) == any_byte ||
+            ip.at(2) == any_byte ||
+            ip.at(3) == any_byte
+           )
+        ip_pool_cp.push_back(ip);
+    }
+
+    return filter(ip_pool_cp);
+}//filter_any
+
+int main(int argc, char const *argv[])
 {
     try
     {
-        std::vector<std::vector<std::string>> ip_pool;
+        std::vector<std::vector<int>> ip_pool;
+        std::vector<int> ip_int;
 
         for(std::string line; std::getline(std::cin, line);)
         {
-            std::vector<std::string> v = split(line, '\t');
-            ip_pool.push_back(split(v.at(0), '.'));
+            auto v = split(line, '\t');
+            auto ip = split(v.at(0), '.');
+
+            ip_int.clear();
+            for (const auto ip_part : ip)
+                ip_int.push_back(atoi(ip_part.c_str()));
+
+            ip_pool.push_back(ip_int);
         }
 
         // Task 1
         ip_print(filter(ip_pool));
 
         // Task 2
-        ip_print(filter(ip_pool, "1.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"));
+        ip_print(filter(ip_pool, 1));
 
         // Task 3
-        ip_print(filter(ip_pool, "46.70.[0-9]{1,3}.[0-9]{1,3}"));
+        ip_print(filter(ip_pool, 46, 70));
 
         // Task 4
-        ip_print(filter(ip_pool, "(46.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}|[0-9]{1,3}.46.[0-9]{1,3}.[0-9]{1,3}|[0-9]{1,3}.[0-9]{1,3}.46.[0-9]{1,3}|[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.46)"));
+        ip_print(filter_any(ip_pool, 46));
 
         // 222.173.235.246
         // 222.130.177.64
