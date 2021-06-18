@@ -84,7 +84,7 @@ auto filter_any(const std::vector<std::vector<int>> &ip_pool, int any_byte)
     return filter(ip_pool_cp);
 }//filter_any
 
-int main(int argc, char const *argv[])
+int main()
 {
     try
     {
@@ -94,10 +94,10 @@ int main(int argc, char const *argv[])
         for(std::string line; std::getline(std::cin, line);)
         {
             auto v = split(line, '\t');
-            auto ip = split(v.at(0), '.');
+            auto ip_str = split(v.at(0), '.');
 
             ip_int.clear();
-            for (const auto ip_part : ip)
+            for (const auto ip_part : ip_str)
                 ip_int.push_back(atoi(ip_part.c_str()));
 
             ip_pool.push_back(ip_int);
